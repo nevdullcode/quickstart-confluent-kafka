@@ -304,6 +304,14 @@ configure_kafka_broker() {
 		sed -i "s/^broker\.id\.generation\.enabled=false/broker\.id\.generation\.enabled=true/" $BROKER_CFG
 	fi
 
+		# *** Customization for Clemson University Grad Student Project ***
+		# Dynamically determines this instance's public IPv4 address and sets
+		# the advertised.listeners property to use it. This enables producing
+		# and consuming to this broker via Kafka clients accessing this
+		# instance from the internet using the public IPv4 address.
+	EC2_INSTANCE_PUBLIC_IPV4=$(curl http://169.254.169.254/latest/meta-data/public-ipv4 2>/dev/null)
+	set_property $BROKER_CFG "advertised.listeners" "PLAINTEXT://${EC2_INSTANCE_PUBLIC_IPV4}:9092"
+
 		# Set target zookeeper quorum and VERY LONG timeout (5 minutes)
 		# (since we don't know how long before other nodes will come on line)
 	set_property $BROKER_CFG "zookeeper.connect" "$zconnect"
